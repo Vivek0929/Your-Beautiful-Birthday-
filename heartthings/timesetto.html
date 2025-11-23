@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Thing: Happy Birthday, My Love!</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Load Great Vibes (Cursive/Script Font for titles) -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <!-- Load Tone.js for simple background music -->
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js"></script>
+
+    <style>
+        /* Custom Styles and Global Resets */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFF5EE; /* cream-base */
+            overflow-x: hidden; /* Prevent horizontal scroll due to animations */
+        }
+
+        .hero-title {
+            font-family: 'Great Vibes', cursive;
+        }
+
+        /* --- Floating Hearts Animation --- */
+        .heart-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .heart {
+            position: absolute;
+            color: #4169E1; /* royal-blue */
+            font-size: 2rem;
+            animation: float 10s ease-in-out infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) scale(1); opacity: 0.6; }
+            50% { transform: translateY(-300px) scale(1.1); opacity: 1; }
+            100% { transform: translateY(-600px) scale(0.9); opacity: 0; }
+        }
+        /* End Floating Hearts */
+
+        /* --- Timeline Styling (Mobile first) --- */
+        .timeline-item {
+            position: relative;
+            padding-left: 1.5rem; /* Space for the line/dot */
+            margin-bottom: 3rem; /* Increased margin for better visual separation and connection */
+        }
+
+        /* Mobile Line (Each item has its own line segment on the left) */
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0.5rem; /* Start line segment from the vertical center of the dot */
+            bottom: -0.5rem; /* Extend line into the margin below to meet the next dot cleanly */
+            width: 2px;
+            background-color: #191970; /* deep-sapphire for the line */
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 0;
+            top: 0.5rem; /* Center the dot's vertical position relative to the content block */
+            transform: translateY(-50%);
+            width: 1rem;
+            height: 1rem;
+            border-radius: 9999px; /* Circle */
+            background-color: #191970; /* deep-sapphire */
+            border: 3px solid #FFF5EE; /* cream-base border */
+            z-index: 20;
+            box-shadow: 0 0 10px rgba(25, 25, 112, 0.7); /* Subtle glow based on deep-sapphire */
+        }      
+        /* NEW: Single continuous spine for desktop view (hidden on mobile) */
+        .timeline-spine {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: #191970;
+            transform: translateX(-50%);
+        }
+        /* Desktop view: side-by-side layout for timeline */
+        @media (min-width: 768px) {
+            /* Disable the per-item mobile line on desktop now that we have the spine */
+            .timeline-item::before {
+                content: none;
+            }    
+            .timeline-item {
+                width: 50%;
+                padding-left: 0;
+                padding-right: 3rem;
+            }
+            .timeline-item:nth-child(odd) {
+                float: left;
+                clear: right;
+                text-align: right;
+                padding-right: 3rem;
+                padding-left: 0;
+            }
+            .timeline-item:nth-child(even) {
+                float: right;
+                clear: left;
+                padding-left: 3rem;
+                padding-right: 0;
+            }       
+            /* Center the dots on the spine for the two-column layout */
+            .timeline-dot {
+                left: 50%;
+                right: auto;
+                transform: translate(-50%, -50%); /* Centered both horizontally and vertically */
+            } 
+            /* Ensure the dot styles are consistent */
+            .timeline-item:nth-child(odd) .timeline-dot,
+            .timeline-item:nth-child(even) .timeline-dot {
+                left: 50%;
+                right: auto;
+                transform: translate(-50%, -50%);
+            }
+            /* Arrow for better readability */
+            .timeline-content {
+                position: relative;
+            }
+            .timeline-item:nth-child(odd) .timeline-content::after {
+                content: '';
+                position: absolute;
+                top: 0.75rem;
+                right: -1.75rem;
+                border: 10px solid transparent;
+                border-left-color: #4169E1; /* royal-blue */
+            }
+            .timeline-item:nth-child(even) .timeline-content::after {
+                content: '';
+                position: absolute;
+                top: 0.75rem;
+                left: -1.75rem;
+                border: 10px solid transparent;
+                border-right-color: #4169E1; /* royal-blue */
+            }
+        }
+        .clearfix::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+    </style>
+    <script>
+        // Custom Tailwind Configuration for colors and animations
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'royal-blue': '#4169E1', /* Primary vibrant blue (replaces pink-love) */
+                        'pale-blue': '#E0F7FA', /* Very light blue (replaces lavender-dream) */
+                        'deep-sapphire': '#191970', /* Dark accent blue (replaces crimson-heart) */
+                        'cream-base': '#FFF5EE',
+                        'gold-accent': '#FFD700',
+                    },
+                    fontFamily: {
+                        script: ['"Great Vibes"', 'cursive'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                    },
+                    animation: {
+                        fadeInUp: 'fadeInUp 1s ease-out forwards',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-cream-base text-gray-800 antialiased">
+    <!-- Floating Hearts Container (CSS Animation) -->
+    <div class="heart-container opacity-0" id="heart-anim-container">
+        <!-- Hearts are added dynamically via JS for positioning variance -->
+    </div>
+    <!-- Music Player Button -->
+    <button id="music-toggle-btn" class="fixed top-4 right-4 z-50 p-3 rounded-full bg-royal-blue shadow-lg hover:bg-deep-sapphire transition-all duration-300 transform hover:scale-110">
+        <svg id="music-on-icon" class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.12 2-2.5 2S4 20.105 4 19s1.12-2 2.5-2 2.5.895 2.5 2zM21 16c0 1.105-1.12 2-2.5 2s-2.5-.895-2.5-2 .895-2 2-2 2.5.895 2.5 2zM10 20l4-4"></path>
+        </svg>
+        <svg id="music-off-icon" class="w-6 h-6 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+        </svg>
+    </button>
+    <!-- 1. Hero Section -->
+    <section class="min-h-screen flex items-center justify-center text-center relative overflow-hidden bg-pale-blue p-6 shadow-2xl">
+        <div class="z-20 p-8 md:p-12 bg-white/70 backdrop-blur-sm rounded-3xl shadow-2xl border border-royal-blue/50 opacity-0 animate-fadeInUp" style="animation-delay: 0.5s;">
+            <h1 class="hero-title text-7xl md:text-9xl text-deep-sapphire mb-4">
+                Heart Thing <span class="text-royal-blue">💞</span>
+            </h1>
+            <p class="text-2xl md:text-4xl text-gray-700 font-script mt-6">
+                Happy Birthday, My One and Only Love!
+            </p>
+            <p class="mt-4 text-lg md:text-xl text-gray-600">
+                This little corner of the internet is just for you.
+            </p>
+        </div>
+    </section>
+    <!-- 1. Countdown Timer Section -->
+    <section id="countdown" class="text-center py-12 bg-royal-blue/10 border-b border-royal-blue/30 opacity-0 animate-fadeInUp" style="animation-delay: 0.8s;">
+        <h2 class="text-3xl md:text-4xl font-script text-deep-sapphire mb-6">
+            The Clock is Ticking Until November 29th!
+        </h2>
+        <div id="timer" class="flex justify-center space-x-2 sm:space-x-4 md:space-x-8">
+            <!-- Timer units will be dynamically inserted here by JavaScript -->
+        </div>
+    </section>
+    <main class="container mx-auto px-4 py-16">
+        <!-- 2. About Her -->
+        <section id="about" class="mb-20 text-center opacity-0 animate-fadeInUp" style="animation-delay: 1s;">
+            <h2 class="text-5xl font-script text-royal-blue mb-8 border-b-2 border-royal-blue inline-block pb-2">All About Her</h2>
+            <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-xl border border-pale-blue">
+                <p class="text-xl md:text-2xl leading-relaxed text-gray-700">
+                    From the moment I first saw you, my world clicked into place. You possess a unique blend of kindness, fierce intelligence, and effortless grace that makes every day feel like a gentle, beautiful dream. You are my sunshine, my calm in the storm, and the single greatest joy in my life. Every laugh shared and every quiet moment together is a treasure I hold deep in my heart. Thank you for simply being you.
+                </p>
+            </div>
+        </section>
+        <!-- 3. Gallery -->
+        <section id="gallery" class="mb-20 opacity-0 animate-fadeInUp" style="animation-delay: 1.5s;">
+            <h2 class="text-5xl font-script text-royal-blue text-center mb-12 border-b-2 border-royal-blue inline-block pb-2 mx-auto block">Our Visual Treasures</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                <!-- Placeholder Images/Media -->
+                <div class="w-full h-40 md:h-64 rounded-xl overflow-hidden shadow-lg transform hover:scale-[1.02] transition duration-300">
+                    <img src="https://placehold.co/400x600/4169E1/E32636?text=Photo+1" alt="A lovely memory" class="w-full h-full object-cover transition duration-500 hover:opacity-80">
+                </div>
+                <div class="w-full h-40 md:h-64 rounded-xl overflow-hidden shadow-lg transform hover:scale-[1.02] transition duration-300">
+                    <img src="https://placehold.co/600x400/E0F7FA/191970?text=Photo+2" alt="A happy memory" class="w-full h-full object-cover transition duration-500 hover:opacity-80">
+                </div>
+                <div class="w-full h-40 md:h-64 rounded-xl overflow-hidden shadow-lg transform hover:scale-[1.02] transition duration-300">
+                    <img src="https://placehold.co/400x400/4169E1/E32636?text=Video+Clip" alt="A fun video clip" class="w-full h-full object-cover transition duration-500 hover:opacity-80">
+                </div>
+                <div class="w-full h-40 md:h-64 rounded-xl overflow-hidden shadow-lg transform hover:scale-[1.02] transition duration-300">
+                    <img src="https://placehold.co/400x600/E0F7FA/191970?text=Photo+3" alt="A special trip" class="w-full h-full object-cover transition duration-500 hover:opacity-80">
+                </div>
+                <div class="w-full h-40 md:h-64 rounded-xl overflow-hidden shadow-lg transform hover:scale-[1.02] transition duration-300 col-span-2">
+                    <img src="https://placehold.co/1200x500/4169E1/E32636?text=Our+Adventures+Together" alt="Long image of an adventure" class="w-full h-full object-cover transition duration-500 hover:opacity-80">
+                </div>
+                <div class="w-full h-40 md:h-64 rounded-xl overflow-hidden shadow-lg transform hover:scale-[1.02] transition duration-300">
+                    <img src="https://placehold.co/400x600/E0F7FA/191970?text=Photo+4" alt="Another sweet memory" class="w-full h-full object-cover transition duration-500 hover:opacity-80">
+                </div>
+                <div class="w-full h-40 md:h-64 rounded-xl overflow-hidden shadow-lg transform hover:scale-[1.02] transition duration-300">
+                    <img src="https://placehold.co/400x600/4169E1/E32636?text=Photo+5" alt="Another sweet memory" class="w-full h-full object-cover transition duration-500 hover:opacity-80">
+                </div>
+            </div>
+        </section>
+        <!-- 4. Letters/Notes -->
+        <section id="letters" class="mb-20 opacity-0 animate-fadeInUp" style="animation-delay: 2s;">
+            <h2 class="text-5xl font-script text-royal-blue text-center mb-12 border-b-2 border-royal-blue inline-block pb-2 mx-auto block">Little Love Notes</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="bg-royal-blue/30 p-6 rounded-xl shadow-xl border border-white transform hover:rotate-1 transition duration-500">
+                    <p class="text-3xl font-script text-deep-sapphire mb-4">Note 1: My Dearest</p>
+                    <p class="text-gray-800 italic">"I look forward to our future every single day. I know it will be filled with so much happiness, simply because you're in it. Love you always, sweetheart."</p>
+                    <p class="text-right text-sm mt-4 text-gray-700">- 14/02/2024</p>
+                </div>
+                <!-- Card 2 (Highlight) -->
+                <div class="bg-white p-6 rounded-xl shadow-2xl border-4 border-gold-accent transform hover:scale-[1.05] transition duration-500">
+                    <p class="text-3xl font-script text-deep-sapphire mb-4">Note 2: Birthday Wish</p>
+                    <p class="text-gray-800 italic font-bold">"On your birthday, I wish you all the joy and laughter you bring to my life multiplied by a thousand. Shine bright, my star."</p>
+                    <p class="text-right text-sm mt-4 text-gray-700">- Today</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-royal-blue/30 p-6 rounded-xl shadow-xl border border-white transform hover:-rotate-1 transition duration-500">
+                    <p class="text-3xl font-script text-deep-sapphire mb-4">Note 3: A Thought</p>
+                    <p class="text-gray-800 italic">"You make even the most mundane moments feel extraordinary. You are the adventure I never knew I was looking for, and I'm so glad I found you."</p>
+                    <p class="text-right text-sm mt-4 text-gray-700">- 25/10/2023</p>
+                </div>
+            </div>
+        </section>
+        <!-- 5. Memories Timeline -->
+        <section id="timeline" class="mb-20 opacity-0 animate-fadeInUp" style="animation-delay: 2.5s;">
+            <h2 class="text-5xl font-script text-royal-blue text-center mb-12 border-b-2 border-royal-blue inline-block pb-2 mx-auto block">Our Journey Together</h2>
+            <!-- FIX: Added clearfix class to the container to prevent floated timeline items from causing overlap with the next section -->
+            <div class="relative max-w-4xl mx-auto py-4 clearfix">
+                <!-- NEW: Dedicated Spine for desktop view, visible only above 768px -->
+                <div class="timeline-spine hidden md:block"></div> 
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content bg-royal-blue/30 p-4 rounded-xl shadow-md border border-royal-blue/50">
+                        <p class="text-lg font-bold text-deep-sapphire">May 12, YYYY</p>
+                        <p class="text-gray-800 mt-1">The First Hello</p>
+                        <p class="text-sm text-gray-600 italic">"The day our two stories finally started to merge into one. Best coffee break ever."</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content bg-pale-blue/70 p-4 rounded-xl shadow-md border border-pale-blue">
+                        <p class="text-lg font-bold text-deep-sapphire">August 1, YYYY</p>
+                        <p class="text-gray-800 mt-1">First Official Date</p>
+                        <p class="text-sm text-gray-600 italic">"We spent hours talking under the stars. I knew then that this was it."</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content bg-royal-blue/30 p-4 rounded-xl shadow-md border border-royal-blue/50">
+                        <p class="text-lg font-bold text-deep-sapphire">December 24, YYYY</p>
+                        <p class="text-gray-800 mt-1">The First "I Love You"</p>
+                        <p class="text-sm text-gray-600 italic">"The most honest and heartfelt words I've ever spoken. I meant every letter."</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content bg-pale-blue/70 p-4 rounded-xl shadow-md border border-pale-blue">
+                        <p class="text-lg font-bold text-deep-sapphire">June 15, YYYY+1</p>
+                        <p class="text-gray-800 mt-1">Our Big Trip</p>
+                        <p class="text-sm text-gray-600 italic">"That road trip where we saw the mountains and the ocean in the same week. Unforgettable."</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content bg-royal-blue/30 p-4 rounded-xl shadow-md border border-royal-blue/50">
+                        <p class="text-lg font-bold text-deep-sapphire">Today</p>
+                        <p class="text-gray-800 mt-1">Your Beautiful Birthday!</p>
+                        <p class="text-sm text-gray-600 italic">"A new chapter begins. I can't wait to see all the memories we'll make next."</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- 6. Final Message Section -->
+        <section id="message" class="text-center py-12 bg-deep-sapphire rounded-3xl shadow-2xl opacity-0 animate-fadeInUp" style="animation-delay: 3s;">
+            <p class="text-3xl md:text-5xl font-script text-white italic px-4">
+                “You'll always be my favorite person in all the world 💖.”
+            </p>
+        </section>
+    </main>
+    <!-- Footer -->
+    <footer class="text-center py-6 text-gray-500 text-sm">
+        <p>Made with love <span class="text-royal-blue">💗</span></p>
+        <!-- Hardcoded the year to eliminate any dynamic scripting issues -->
+        <p class="mt-1">&copy; 2025 Heart Thing, just for you.</p>
+    </footer>
+    <script>
+        // Helper function to create the timer unit HTML structure
+        function createUnit(value, label) {
+            // Ensure value is a string and has at least two digits (e.g., 05)
+            const displayValue = value.toString().padStart(2, '0');
+            return `
+                <div class="p-3 md:p-5 bg-white rounded-xl shadow-lg border border-royal-blue/50 w-20 md:w-28 text-deep-sapphire">
+                    <p class="text-3xl md:text-5xl font-bold">${displayValue}</p>
+                    <p class="text-sm md:text-base mt-1 text-royal-blue uppercase">${label}</p>
+                </div>
+            `;
+        }
+        // function startCountdown() {
+        //     // Target date: November 29th of the current year (2025)
+        //     // Note: The date is set for 11/29/2025 based on the current system date (Oct 28, 2025)
+        //     const targetDate = new Date("November 29, 2025 00:00:00").getTime();
+        //     const timerElement = document.getElementById("timer");
+        //     const updateTimer = setInterval(function() {
+        //         const now = new Date().getTime();
+        //         const distance = targetDate - now;
+        //         // Time calculations for days, hours, minutes and seconds
+        //         const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        //         const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        //         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        //         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        //         // Display the result using the helper function
+        //         timerElement.innerHTML = `
+        //             ${createUnit(days, 'Days')}
+        //             ${createUnit(hours, 'Hours')}
+        //             ${createUnit(minutes, 'Minutes')}
+        //             ${createUnit(seconds, 'Seconds')}
+        //         `;
+        //         // If the countdown is finished, display a birthday message
+        //         if (distance < 0) {
+        //             clearInterval(updateTimer);
+        //             timerElement.innerHTML = "<span class='text-4xl md:text-6xl font-script text-royal-blue animate-pulse'>HAPPY BIRTHDAY, MY LOVE!</span>";
+        //         }
+        //     }, 1000);
+        // }
+        function startCountdown() {
+            const timerElement = document.getElementById("timer");
+            // Your static, hardcoded values
+            const days = 29;
+            const hours = 9;    // The createUnit function will add the '0'
+            const minutes = 29;
+            const seconds = 29;
+            // Display the static result using your existing helper function
+            timerElement.innerHTML = `
+                ${createUnit(days, 'Days')}
+                ${createUnit(hours, 'Hours')}
+                ${createUnit(minutes, 'Minutes')}
+                ${createUnit(seconds, 'Seconds')}
+            `;
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            // Start the countdown timer
+            startCountdown();
+
+            // 1. Gentle Fade-in Animation for main content (handled by Tailwind utility classes in HTML)
+            // The opacity:0 and animation-fadeInUp is already applied to sections.
+
+            // 2. Floating Heart Generation
+            const heartContainer = document.getElementById('heart-anim-container');
+            const numHearts = 15;
+            // Show the container after a short delay
+            setTimeout(() => {
+                heartContainer.classList.remove('opacity-0');
+                heartContainer.style.transition = 'opacity 2s ease';
+            }, 1000);
+            for (let i = 0; i < numHearts; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.innerHTML = '&#10084;'; // Unicode heart symbol
+                // Randomize starting position
+                const startX = Math.random() * 100;
+                const startY = 100 + Math.random() * 50; // Start off-screen below
+                const size = 1.5 + Math.random() * 1.5; // Random size 1.5rem to 3.0rem
+                const duration = 8 + Math.random() * 6; // Random duration 8s to 14s
+                heart.style.left = `${startX}vw`;
+                heart.style.bottom = `-${startY}px`;
+                heart.style.fontSize = `${size}rem`;
+                heart.style.animationDuration = `${duration}s`;
+                heart.style.animationDelay = `-${Math.random() * duration}s`; // Stagger start times
+                heartContainer.appendChild(heart);
+            }
+            // 3. Music Player (Tone.js)
+            const btn = document.getElementById('music-toggle-btn');
+            const iconOn = document.getElementById('music-on-icon');
+            const iconOff = document.getElementById('music-off-icon');
+            let isPlaying = false;
+            let synth = null;
+            async function setupTone() {
+                // Check if Tone is already running (needed for mobile browsers)
+                if (Tone.context.state !== 'running') {
+                    await Tone.start();
+                }
+                if (!synth) {
+                    synth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: "triangle" },
+                        envelope: {
+                            attack: 2,
+                            decay: 0.5,
+                            sustain: 0.8,
+                            release: 5,
+                        },
+                        volume: -15 // Keep it soft
+                    }).toDestination();
+                }
+                const loop = new Tone.Loop(time => {
+                    const notes = ["C4", "E4", "G4", "A4"]; // Simple, gentle chord progression
+                    const index = Math.floor(Math.random() * notes.length);
+                    synth.triggerAttackRelease(notes[index], "4n", time);
+                }, "2n").start(0); // Loop every 2 half notes
+                // Keep the loop reference on the button for cleanup
+                btn.loop = loop;
+            }
+            btn.addEventListener('click', async () => {
+                if (!synth) {
+                    // First interaction, set up the audio context and synth
+                    await setupTone();
+                }
+                if (isPlaying) {
+                    // Stop music
+                    btn.loop.stop();
+                    iconOn.classList.remove('hidden');
+                    iconOff.classList.add('hidden');
+                    isPlaying = false;
+                } else {
+                    // Start music
+                    btn.loop.start(Tone.now());
+                    iconOn.classList.add('hidden');
+                    iconOff.classList.remove('hidden');
+                    isPlaying = true;
+                }
+            });
+            // Prevent scroll on touch devices when clicking the button
+            btn.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+        });
+    </script>
+</body>
+</html>
